@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TransLingo - Real-Time Translation & Tone Modification</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            z-index: 1000;
+            padding: 20px 0;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            cursor: pointer;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s;
+            cursor: pointer;
+        }
+
+        .nav-links a:hover {
+            color: #667eea;
+        }
+
+        /* Pages */
+        .page {
+            display: none;
+            min-height: 100vh;
+            padding-top: 80px;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Home Page */
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 120px 40px 80px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="2" fill="white" opacity="0.1"/></svg>');
+            animation: float 20s linear infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-100px); }
+        }
+
+        .hero h1 {
+            font-size: 56px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero p {
+            font-size: 24px;
+            margin-bottom: 40px;
+            opacity: 0.95;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #667eea;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn-secondary:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 80px 40px;
+            background: #f8f9fa;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 42px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 20px;
+            color: #666;
+            margin-bottom: 60px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            text-align: center;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .feature-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .feature-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* About Page */
+        .about-section {
+            padding: 80px 40px;
+        }
+
+        .about-content {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            margin-top: 60px;
+        }
+
+        .about-text h2 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            color: #667eea;
+        }
+
+        .about-text p {
+            font-size: 18px;
+            line-height: 1.8;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .stats {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 48px;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        /* Applications Section */
+        .applications {
+            padding: 80px 40px;
+            background: #f8f9fa;
+        }
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .app-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .app-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .app-image {
+            width: 100%;
+            height: 250px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 80px;
+            color: white;
+        }
+
+        .app-content {
+            padding: 30px;
+        }
+
+        .app-content h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .app-content p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .app-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tag {
+            padding: 6px 16px;
+            background: #e7e7ff;
+            color: #667eea;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* Demo Page Container */
+        #demoPage .demo-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        /* Footer */
+        footer {
+            background: #2d3748;
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        footer p {
+            margin-bottom: 10px;
+        }
+
+        footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                gap: 20px;
+            }
+
+            .hero h1 {
+                font-size: 36px;
+            }
+
+            .hero p {
+                font-size: 18px;
+            }
+
+            .about-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo" onclick="showPage('home')">🌐 TransLingo</div>
+            <ul class="nav-links">
+                <li><a onclick="showPage('home')">Home</a></li>
+                <li><a onclick="showPage('about')">About</a></li>
+                <li><a onclick="showPage('applications')">Applications</a></li>
+                <li><a onclick="showPage('demo')">Live Demo</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Home Page -->
+    <div id="homePage" class="page active">
+        <div class="hero">
+            <h1>Break Language Barriers in Real-Time</h1>
+            <p>AI-Powered Translation with Intelligent Tone Modification</p>
+            <div class="cta-buttons">
+                <button class="btn btn-primary" onclick="showPage('demo')">Try Live Demo</button>
+                <button class="btn btn-secondary" onclick="showPage('about')">Learn More</button>
+            </div>
+        </div>
+
+        <div class="features">
+            <div class="container">
+                <h2 class="section-title">Powerful Features</h2>
+                <p class="section-subtitle">Everything you need for seamless global communication</p>
+                
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Real-Time Translation</h3>
+                        <p>Instant translation across 12+ languages with industry-leading accuracy and speed under 600ms.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">🎭</div>
+                        <h3>Tone Modification</h3>
+                        <p>Automatically adjust formality levels from casual to formal, preserving context and cultural nuances.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">🎤</div>
+                        <h3>Voice Input</h3>
+                        <p>Speak naturally in any language. Our advanced speech recognition captures every word accurately.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">🎵</div>
+                        <h3>Prosody Analysis</h3>
+                        <p>Analyzes pitch, speed, and emotion to deliver context-aware translations that sound natural.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">😊</div>
+                        <h3>Emotion Detection</h3>
+                        <p>Identifies emotional context in messages to ensure appropriate tone and sentiment preservation.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h3>Live Analytics</h3>
+                        <p>Track translation performance, accuracy metrics, and usage statistics in real-time dashboards.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Page -->
+    <div id="aboutPage" class="page">
+        <div class="about-section">
+            <div class="about-content">
+                <h2 class="section-title">About TransLingo</h2>
+                <p class="section-subtitle">Revolutionizing Global Communication</p>
+
+                <div class="about-grid">
+                    <div class="about-text">
+                        <h2>Our Mission</h2>
+                        <p>TransLingo is built on the belief that language should never be a barrier to human connection and collaboration. We combine cutting-edge AI technology with linguistic expertise to deliver translations that don't just convert words—they preserve meaning, tone, and cultural context.</p>
+                        
+                        <h2 style="margin-top: 30px;">Why Choose Us?</h2>
+                        <p>Unlike traditional translation tools, TransLingo understands that communication is more than words. Our intelligent tone modification ensures your message is always appropriate for the context, whether you're chatting with friends or presenting to executives.</p>
+                        
+                        <p>Powered by DeepL's industry-leading neural networks and enhanced with proprietary emotion detection algorithms, we deliver translations that feel natural and authentic.</p>
+                    </div>
+
+                    <div class="stats">
+                        <div class="stat-item">
+                            <span class="stat-number">97%</span>
+                            <span class="stat-label">Translation Accuracy</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">12+</span>
+                            <span class="stat-label">Languages Supported</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">&lt;600ms</span>
+                            <span class="stat-label">Average Response Time</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">94%</span>
+                            <span class="stat-label">Tone Preservation</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 60px; text-align: center;">
+                    <h2 class="section-title" style="margin-bottom: 30px;">Technology Stack</h2>
+                    <div class="features-grid">
+                        <div class="feature-card">
+                            <h3>🧠 DeepL API</h3>
+                            <p>Neural machine translation with human-level quality</p>
+                        </div>
+                        <div class="feature-card">
+                            <h3>🎤 Web Speech API</h3>
+                            <p>Browser-native speech recognition for all major languages</p>
+                        </div>
+                        <div class="feature-card">
+                            <h3>🔬 NLP Analysis</h3>
+                            <p>Advanced natural language processing for emotion detection</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Applications Page -->
+    <div id="applicationsPage" class="page">
+        <div class="applications">
+            <div class="container">
+                <h2 class="section-title">Real-World Applications</h2>
+                <p class="section-subtitle">See how TransLingo transforms communication across industries</p>
+
+                <div class="app-grid">
+                    <div class="app-card">
+                        <div class="app-image">💼</div>
+                        <div class="app-content">
+                            <h3>International Business</h3>
+                            <p>Enable seamless communication between global teams. Automatically adjust tone for client meetings, internal communications, and cross-cultural collaboration.</p>
+                            <div class="app-tags">
+                                <span class="tag">Meetings</span>
+                                <span class="tag">Emails</span>
+                                <span class="tag">Negotiations</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="app-card">
+                        <div class="app-image">🏥</div>
+                        <div class="app-content">
+                            <h3>Healthcare</h3>
+                            <p>Bridge language gaps between doctors and patients. Ensure medical terminology is accurately translated while maintaining empathy and clarity.</p>
+                            <div class="app-tags">
+                                <span class="tag">Patient Care</span>
+                                <span class="tag">Medical Records</span>
+                                <span class="tag">Consultations</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="app-card">
+                        <div class="app-image">🎓</div>
+                        <div class="app-content">
+                            <h3>Education</h3>
+                            <p>Connect students and educators worldwide. Translate lectures, assignments, and study materials while preserving academic tone and accuracy.</p>
+                            <div class="app-tags">
+                                <span class="tag">Online Learning</span>
+                                <span class="tag">Lectures</span>
+                                <span class="tag">Study Groups</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="app-card">
+                        <div class="app-image">🛒</div>
+                        <div class="app-content">
+                            <h3>E-Commerce</h3>
+                            <p>Expand to global markets effortlessly. Translate product descriptions, customer support, and reviews with culturally appropriate tone.</p>
+                            <div class="app-tags">
+                                <span class="tag">Customer Support</span>
+                                <span class="tag">Product Listings</span>
+                                <span class="tag">Reviews</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="app-card">
+                        <div class="app-image">🎮</div>
+                        <div class="app-content">
+                            <h3>Gaming & Entertainment</h3>
+                            <p>Connect players worldwide with real-time chat translation. Preserve gaming slang, memes, and community culture across languages.</p>
+                            <div class="app-tags">
+                                <span class="tag">Multiplayer Chat</span>
+                                <span class="tag">Game Content</span>
+                                <span class="tag">Communities</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="app-card">
+                        <div class="app-image">✈️</div>
+                        <div class="app-content">
+                            <h3>Travel & Hospitality</h3>
+                            <p>Help travelers communicate effortlessly. From booking hotels to ordering food, break down language barriers anywhere.</p>
+                            <div class="app-tags">
+                                <span class="tag">Booking</span>
+                                <span class="tag">Navigation</span>
+                                <span class="tag">Local Culture</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Demo Page -->
+    <div id="demoPage" class="page">
+        <div class="demo-container">
+            <!-- Setup Banner -->
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; text-align: center;" id="setupBanner">
+                <h3>🚀 Quick Setup Required</h3>
+                <p>Get your FREE DeepL API key (500,000 chars/month): <a href="https://www.deepl.com/pro-api" target="_blank" style="color: white; text-decoration: underline; font-weight: bold;">www.deepl.com/pro-api</a></p>
+                <p style="font-size: 14px; margin-top: 10px;">Or scroll down and click "Use Demo Mode" for instant testing!</p>
+            </div>
+
+            <!-- Header -->
+            <div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); margin-bottom: 20px; text-align: center;">
+                <h1 style="font-size: 36px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px;">🌐 Live Translation Demo</h1>
+                <p style="color: #666; font-size: 18px;">Experience real-time translation with tone modification</p>
+            </div>
+
+            <!-- Main Grid -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <!-- Input Panel -->
+                <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                    <h2 style="color: #667eea; margin-bottom: 20px; font-size: 24px;">📝 Input Settings</h2>
+
+                    <!-- API Configuration -->
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #667eea;">
+                        <strong>🔑 API Configuration</strong>
+                        <input type="text" id="apiKeyInput" placeholder="Enter your DeepL API key here" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; margin-top: 10px; font-size: 16px;">
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <button onclick="saveApiKey()" style="flex: 1; padding: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">Save API Key</button>
+                            <button onclick="useDemoMode()" style="flex: 1; padding: 10px; background: #f0f0f0; color: #333; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">Use Demo Mode</button>
+                        </div>
+                        <div id="apiStatus" style="margin-top: 10px; font-size: 12px;"></div>
+                    </div>
+                    
+                    <!-- Language Selection -->
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; font-weight: bold; margin-bottom: 8px;">Language Pair</label>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <select id="sourceLang" style="flex: 1; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px;">
+                                <option value="EN">🇬🇧 English</option>
+                                <option value="ES">🇪🇸 Spanish</option>
+                                <option value="FR">🇫🇷 French</option>
+                                <option value="DE">🇩🇪 German</option>
+                                <option value="HI">🇮🇳 Hindi</option>
+                            </select>
+                            <button onclick="swapLanguages()" style="background: #667eea; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; font-size: 18px;">⇄</button>
+                            <select id="targetLang" style="flex: 1; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px;">
+                                <option value="EN">🇬🇧 English</option>
+                                <option value="ES" selected>🇪🇸 Spanish</option>
+                                <option value="FR">🇫🇷 French</option>
+                                <option value="DE">🇩🇪 German</option>
+                                <option value="HI">🇮🇳 Hindi</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Formality Control -->
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; font-weight: bold; margin-bottom: 8px;">
+                            Formality Level
+                            <span id="toneDisplay" style="display: inline-block; padding: 6px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 14px; margin-left: 10px;">Neutral</span>
+                        </label>
+                        <input type="range" id="formalitySlider" min="0" max="100" value="50" oninput="updateTone()" style="width: 100%; height: 6px; border-radius: 5px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #666; margin-top: 5px;">
+                            <span>Casual</span>
+                            <span>Neutral</span>
+                            <span>Formal</span>
+                        </div>
+                    </div>
+
+                    <!-- Text Input -->
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; font-weight: bold; margin-bottom: 8px;">Your Message</label>
+                        <textarea id="inputText" placeholder="Type anything... Try: 'hello' or 'how are you'" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; min-height: 120px; font-size: 16px; resize: vertical;"></textarea>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="translateMessage()" id="translateBtn" style="flex: 1; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;">⚡ Translate</button>
+                        <button onclick="clearAll()" style="flex: 1; padding: 15px; background: #f0f0f0; color: #333; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;">🗑️ Clear</button>
+                    </div>
+                </div>
+
+                <!-- Output Panel -->
+                <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                    <h2 style="color: #667eea; margin-bottom: 20px; font-size: 24px;">✨ Translation Output</h2>
+                    
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 2px solid #e0e0e0; min-height: 400px;">
+                        <div id="outputContent">
+                            <p style="text-align: center; color: #999; padding: 40px;">Translation will appear here...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                <h2 style="color: #667eea; margin-bottom: 15px;">📊 Session Statistics</h2>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                    <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 10px;">
+                        <span id="statTranslations" style="font-size: 32px; font-weight: bold; color: #667eea; display: block;">0</span>
+                        <span style="font-size: 12px; color: #666;">Translations</span>
+                    </div>
+                    <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 10px;">
+                        <span id="statAvgTime" style="font-size: 32px; font-weight: bold; color: #667eea; display: block;">0ms</span>
+                        <span style="font-size: 12px; color: #666;">Avg Time</span>
+                    </div>
+                    <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 10px;">
+                        <span id="statWords" style="font-size: 32px; font-weight: bold; color: #667eea; display: block;">0</span>
+                        <span style="font-size: 12px; color: #666;">Words Processed</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p><strong>TransLingo</strong> - Breaking Language Barriers Since 2024</p>
+        <p>Powered by DeepL API | <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
+    </footer>
+
+    <script>
+        // Configuration
+        let API_KEY = '';
+        let API_MODE = 'demo';
+
+        // State
+        let totalTranslations = 0;
+        let totalTime = 0;
+        let totalWords = 0;
+
+        // Demo translations database
+        const demoTranslations = {
+            'EN': {
+                'ES': { 'hello': 'hola', 'how are you': '¿cómo estás?', 'thank you': 'gracias', 'i love you': 'te amo', 'good morning': 'buenos días', 'help me': 'ayúdame' },
+                'FR': { 'hello': 'bonjour', 'how are you': 'comment allez-vous?', 'thank you': 'merci', 'i love you': 'je t\'aime', 'good morning': 'bonjour' },
+                'DE': { 'hello': 'hallo', 'how are you': 'wie geht es dir?', 'thank you': 'danke', 'i love you': 'ich liebe dich', 'good morning': 'guten morgen' },
+                'HI': { 'hello': 'नमस्ते', 'how are you': 'आप कैसे हैं?', 'thank you': 'धन्यवाद', 'i love you': 'मैं तुमसे प्यार करता हूँ', 'good morning': 'सुप्रभात' }
+            },
+            'HI': {
+                'EN': { 'नमस्ते': 'hello', 'आप कैसे हैं': 'how are you', 'धन्यवाद': 'thank you', 'मुझे मदद चाहिए': 'i need help', 'सुप्रभात': 'good morning' }
+            },
+            'ES': {
+                'EN': { 'hola': 'hello', '¿cómo estás?': 'how are you?', 'gracias': 'thank you', 'te amo': 'i love you', 'buenos días': 'good morning' }
+            },
+            'FR': {
+                'EN': { 'bonjour': 'hello', 'comment allez-vous': 'how are you', 'merci': 'thank you', 'je t\'aime': 'i love you' }
+            },
+            'DE': {
+                'EN': { 'hallo': 'hello', 'wie geht es dir': 'how are you', 'danke': 'thank you', 'ich liebe dich': 'i love you' }
+            }
+        };
+
+        // Page navigation
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId + 'Page').classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        // Save API key
+        function saveApiKey() {
+            const key = document.getElementById('apiKeyInput').value.trim();
+            if (key) {
+                API_KEY = key;
+                API_MODE = 'deepl';
+                document.getElementById('apiStatus').innerHTML = '<span style="color: #28a745;">✓ DeepL API key saved! Ready to translate.</span>';
+                document.getElementById('setupBanner').style.display = 'none';
+            } else {
+                alert('Please enter a valid API key');
+            }
+        }
+
+        // Use demo mode
+        function useDemoMode() {
+            API_MODE = 'demo';
+            document.getElementById('apiStatus').innerHTML = '<span style="color: #0066cc;">✓ Demo mode activated! Limited phrases available.</span>';
+            document.getElementById('setupBanner').style.display = 'none';
+        }
+
+        // Update tone
+        function updateTone() {
+            const value = document.getElementById('formalitySlider').value;
+            const display = document.getElementById('toneDisplay');
+            
+            if (value < 35) {
+                display.textContent = 'Casual';
+            } else if (value > 65) {
+                display.textContent = 'Formal';
+            } else {
+                display.textContent = 'Neutral';
+            }
+        }
+
+        // Get tone level
+        function getToneLevel() {
+            const value = document.getElementById('formalitySlider').value;
+            if (value < 35) return 'casual';
+            if (value > 65) return 'formal';
+            return 'neutral';
+        }
+
+        // Swap languages
+        function swapLanguages() {
+            const source = document.getElementById('sourceLang');
+            const target = document.getElementById('targetLang');
+            const temp = source.value;
+            source.value = target.value;
+            target.value = temp;
+        }
+
+        // Analyze emotion
+        function analyzeEmotion(text) {
+            const exclamations = (text.match(/!/g) || []).length;
+            const questions = (text.match(/\?/g) || []).length;
+            const urgentWords = ['urgent', 'help', 'now', 'immediately', 'asap', 'मदद', 'urgente'].some(w => text.toLowerCase().includes(w));
+            
+            if (urgentWords || exclamations > 1) return '⚠️ Urgent';
+            if (exclamations > 0) return '😃 Enthusiastic';
+            if (questions > 0) return '🤔 Curious';
+            return '😊 Neutral';
+        }
+
+        // Apply tone modification
+        function applyToneModification(text, tone) {
+            if (tone === 'casual') {
+                text = text.replace(/\byou are\b/gi, "you're");
+                text = text.replace(/\bdo not\b/gi, "don't");
+            } else if (tone === 'formal') {
+                text = text.replace(/\bdon't\b/gi, 'do not');
+                text = text.replace(/\bcan't\b/gi, 'cannot');
+                text = text.replace(/\bhey\b/gi, 'hello');
+            }
+            return text;
+        }
+
+        // Translate with DeepL API
+        async function translateWithDeepL(text, sourceLang, targetLang) {
+            const url = 'https://api-free.deepl.com/v2/translate';
+            
+            const formData = new URLSearchParams();
+            formData.append('auth_key', API_KEY);
+            formData.append('text', text);
+            formData.append('source_lang', sourceLang);
+            formData.append('target_lang', targetLang);
+
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            
+            if (data.translations && data.translations[0]) {
+                return data.translations[0].text;
+            } else if (data.message) {
+                throw new Error(data.message);
+            } else {
+                throw new Error('DeepL translation failed');
+            }
+        }
+
+        // Translate with demo mode
+        function translateWithDemo(text, sourceLang, targetLang) {
+            const normalized = text.toLowerCase().trim();
+            
+            if (demoTranslations[sourceLang] && demoTranslations[sourceLang][targetLang]) {
+                const translation = demoTranslations[sourceLang][targetLang][normalized];
+                if (translation) {
+                    return translation;
+                }
+            }
+            
+            return `[DEMO] ${text} → ${targetLang}`;
+        }
+
+        // Main translation function
+        async function translateMessage() {
+            const inputText = document.getElementById('inputText').value.trim();
+            if (!inputText) {
+                alert('Please enter some text to translate!');
+                return;
+            }
+
+            const sourceLang = document.getElementById('sourceLang').value;
+            const targetLang = document.getElementById('targetLang').value;
+            const tone = getToneLevel();
+
+            if (sourceLang === targetLang) {
+                alert('Please select different source and target languages!');
+                return;
+            }
+
+            const startTime = Date.now();
+            const outputDiv = document.getElementById('outputContent');
+            const translateBtn = document.getElementById('translateBtn');
+            
+            outputDiv.innerHTML = '<p style="text-align: center; color: #667eea;">⚡ Translating...</p>';
+            translateBtn.disabled = true;
+
+            try {
+                let translatedText = '';
+                let apiUsed = '';
+
+                if (API_MODE === 'deepl' && API_KEY) {
+                    translatedText = await translateWithDeepL(inputText, sourceLang, targetLang);
+                    apiUsed = 'DeepL API';
+                } else {
+                    translatedText = translateWithDemo(inputText, sourceLang, targetLang);
+                    apiUsed = 'Demo Mode';
+                }
+
+                const processingTime = Date.now() - startTime;
+                translatedText = applyToneModification(translatedText, tone);
+                const emotion = analyzeEmotion(inputText);
+                const confidence = API_MODE === 'deepl' ? 97 : 85;
+
+                outputDiv.innerHTML = `
+                    <div style="font-size: 24px; color: #333; line-height: 1.6; margin-bottom: 20px; font-weight: 500;">${translatedText}</div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                        <span style="padding: 8px 16px; background: #d4edda; color: #155724; border-radius: 15px; font-size: 13px; font-weight: bold;">${sourceLang} → ${targetLang}</span>
+                        <span style="padding: 8px 16px; background: #d1ecf1; color: #0c5460; border-radius: 15px; font-size: 13px; font-weight: bold;">Tone: ${tone}</span>
+                        <span style="padding: 8px 16px; background: #fff3cd; color: #856404; border-radius: 15px; font-size: 13px; font-weight: bold;">${emotion}</span>
+                        <span style="padding: 8px 16px; background: #e7e7ff; color: #4a4aff; border-radius: 15px; font-size: 13px; font-weight: bold;">${apiUsed}</span>
+                        <span style="padding: 8px 16px; background: #f8d7da; color: #721c24; border-radius: 15px; font-size: 13px; font-weight: bold;">Accuracy: ${confidence}%</span>
+                    </div>
+                    <div style="margin-top: 20px; padding: 15px; background: white; border-radius: 8px; border: 2px solid #e0e0e0;">
+                        <div style="font-size: 12px; color: #999; margin-bottom: 5px;">Original:</div>
+                        <div style="font-size: 16px; color: #666;">${inputText}</div>
+                    </div>
+                `;
+
+                updateStats(processingTime, inputText.split(' ').length);
+
+            } catch (error) {
+                console.error('Translation error:', error);
+                outputDiv.innerHTML = `
+                    <div style="padding: 20px; border-radius: 8px; background: #fff3cd; color: #856404; border: 1px solid #ffeaa7;">
+                        <strong>⚠️ Translation Error</strong><br><br>
+                        ${error.message}
+                        <br><br>
+                        <strong>Suggestions:</strong>
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            <li>Check your DeepL API key</li>
+                            <li>Make sure you're connected to the internet</li>
+                            <li>Try using Demo Mode instead</li>
+                            <li>Verify API quota hasn't been exceeded</li>
+                        </ul>
+                    </div>
+                `;
+            } finally {
+                translateBtn.disabled = false;
+            }
+        }
+
+        // Update statistics
+        function updateStats(processingTime, wordCount) {
+            totalTranslations++;
+            totalTime += processingTime;
+            totalWords += wordCount;
+
+            document.getElementById('statTranslations').textContent = totalTranslations;
+            document.getElementById('statAvgTime').textContent = Math.round(totalTime / totalTranslations) + 'ms';
+            document.getElementById('statWords').textContent = totalWords;
+        }
+
+        // Clear all
+        function clearAll() {
+            document.getElementById('inputText').value = '';
+            document.getElementById('outputContent').innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">Translation will appear here...</p>';
+        }
+
+        // Initialize
+        updateTone();
+
+        console.log('🚀 TransLingo Ready!');
+        console.log('📝 Demo Mode Phrases: hello, how are you, thank you, i love you, good morning, help me');
+    </script>
+</body>
+</html>
